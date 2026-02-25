@@ -48,12 +48,13 @@ export default function Client() {
         newSocket.on('admin_play', () => {
             if (gameState === 'waiting' || gameState === 'playing') {
                 setGameState('playing');
-                videoRef.current?.play();
             }
         });
 
         newSocket.on('admin_pause', () => {
-            videoRef.current?.pause();
+            if (videoRef.current) {
+                videoRef.current.pause();
+            }
         });
 
         newSocket.on('admin_reset', () => {
@@ -68,6 +69,13 @@ export default function Client() {
         return () => newSocket.close();
     }, [gameState]);
 
+    // Handle Play execution securely when gameState changes to playing
+    useEffect(() => {
+        if (gameState === 'playing' && videoRef.current) {
+            videoRef.current.play().catch(e => console.error("Autoplay blocked:", e));
+        }
+    }, [gameState]);
+
     const handleJoin = (e) => {
         e.preventDefault();
         if (socket && myPos.row >= 1 && myPos.col >= 1) {
@@ -76,7 +84,7 @@ export default function Client() {
     };
 
     const handleVideoCanPlay = () => {
-        if (socket && gameState === 'waiting') {
+        if (socket && (gameState === 'waiting' || gameState === 'onboarding')) {
             socket.emit('client_ready');
         }
     };
@@ -96,24 +104,10 @@ export default function Client() {
         objectFit: 'cover'
     };
 
-    if (gameState === 'playing') {
-        return (
-            <div className="w-screen h-screen overflow-hidden bg-black fixed inset-0">
-                <video
-                    ref={videoRef}
-                    src={matrix.videoUrl}
-                    style={displayStyle}
-                    playsInline
-                    muted
-                    loop
-                    onCanPlayThrough={handleVideoCanPlay}
-                />
-            </div>
-        );
-    }
+
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative">
+        <div className="min-h-screen bg-black text-white relative overflow-hidden flex flex-col items-center justify-center p-4">
 
             {/* Admin Login Portal Button */}
             {gameState === 'onboarding' && (
@@ -124,18 +118,20 @@ export default function Client() {
                 </div>
             )}
 
-            {/* Hidden video element to preload in background */}
+            {/* The single, persistent video element to prevent buffering resets */}
             <video
                 ref={videoRef}
                 src={matrix.videoUrl}
-                className="hidden"
+                style={gameState === 'playing' ? displayStyle : { display: 'none' }}
+                className={gameState === 'playing' ? '' : 'hidden'}
                 playsInline
                 muted
-                onCanPlayThrough={handleVideoCanPlay}
+                loop
+                onLoadedData={handleVideoCanPlay}
             />
 
             {gameState === 'onboarding' && (
-                <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] max-w-sm w-full relative overflow-hidden">
+                <div className="bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] max-w-sm w-full relative overflow-hidden z-10">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00f0ff] to-transparent"></div>
 
                     <h1 className="text-3xl font-black mb-2 tracking-widest uppercase text-center text-[#00f0ff] drop-shadow-[0_0_10px_rgba(0,240,255,0.3)]">
@@ -177,7 +173,7 @@ export default function Client() {
             )}
 
             {gameState === 'waiting' && (
-                <div className="text-center space-y-8 animate-pulse">
+                <div className="text-center space-y-8 animate-pulse z-10 w-full h-full flex flex-col items-center justify-center bg-zinc-950 absolute top-0 left-0">
                     <div className="w-32 h-32 border-4 border-[#00f0ff] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_30px_rgba(0,240,255,0.3)]"></div>
                     <div>
                         <h2 className="text-2xl font-black uppercase tracking-widest text-zinc-300">Awaiting Signal</h2>

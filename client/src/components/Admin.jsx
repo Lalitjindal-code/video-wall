@@ -82,36 +82,50 @@ export default function Admin() {
 
         setIsUploading(true);
         setUploadError("");
-        setUploadProgress(0);
+        setUploadProgress(0); // Optional: Fake progress or remove progress bar entirely if backend doesn't support streaming progress.
 
-        // Upload directly to Firebase Storage
-        const fileRef = ref(storage, `videos/${Date.now()}_${file.name}`);
-        const uploadTask = uploadBytesResumable(fileRef, file);
+        const formData = new FormData();
+        formData.append('video', file);
 
-        uploadTask.on(
-            'state_changed',
-            (snapshot) => {
-                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                setUploadProgress(progress);
-            },
-            (err) => {
-                console.error(err);
-                setUploadError("Failed to upload video to cloud.");
-                setIsUploading(false);
-            },
-            async () => {
-                // Success! Get the permanent URL
-                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        try {
+            // Fake progress for UX
+            const progressInterval = setInterval(() => {
+                setUploadProgress(prev => {
+                    const next = prev + 10;
+                    return next >= 90 ? 90 : next;
+                });
+            }, 200);
 
-                // Tell the Node.js backend the new URL so it can update Firestore and broadcast it
-                if (socket) {
-                    socket.emit('admin_video_uploaded', downloadURL);
-                }
+            // Using the global server URL but hitting POST /upload
+            const response = await fetch(`${SOCKET_SERVER_URL}/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            clearInterval(progressInterval);
+            setUploadProgress(100);
+
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(text || response.statusText);
+            }
+
+            const data = await response.json();
+            console.log("Upload successful:", data.url);
+
+            // Wait for 100% flag to stay on screen briefly
+            setTimeout(() => {
                 setIsUploading(false);
                 setUploadProgress(0);
                 e.target.value = null; // reset
-            }
-        );
+            }, 500);
+
+        } catch (err) {
+            console.error("Upload error:", err);
+            setUploadError(`Failed to upload: ${err.message}`);
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
     };
 
     const handlePlay = () => {

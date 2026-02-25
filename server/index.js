@@ -2,19 +2,33 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
-
-const admin = require('firebase-admin');
-
-// IMPORTANT: Replace this with your actual Firebase Admin credentials JSON.
-// For now, we are simulating a Firestore DB structure for the sockets.
-// In actual production, you would do:
-// const serviceAccount = require('./firebase-permissions.json');
-// admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
 
-// --- REMOVED MULTER AND UPLOADS LOGIC --- //
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(uploadDir));
+
+// Configure Multer for video uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir)
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname))
+  }
+})
+const upload = multer({ storage: storage })
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -28,12 +42,28 @@ let matrixState = {
   rows: 10,
   cols: 10,
   eventName: "Paradox",
-  videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  videoUrl: "", // Wait for admin upload
   users: {} // Format: { socketId: { row, col, status: 'buffering' | 'ready' } }
 };
 
+// Express Route for Video Upload
+app.post('/upload', upload.single('video'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
 
+  // Construct the new URL dynamically based on the request host
+  const newVideoUrl = `http://${req.get('host')}/uploads/${req.file.filename}`;
 
+  // Update global matrix state
+  matrixState.videoUrl = newVideoUrl;
+
+  // Broadcast state update so clients reload
+  io.emit('matrix_state', matrixState);
+  io.emit('admin_reset'); // Force clients back to waiting so they reload the new video
+
+  res.json({ message: 'File uploaded successfully', url: newVideoUrl });
+});
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
 
@@ -70,12 +100,6 @@ io.on('connection', (socket) => {
     matrixState.users = {};
     io.emit('matrix_state', matrixState);
     io.emit('admin_reset');
-  });
-
-  socket.on('admin_video_uploaded', (newVideoUrl) => {
-    matrixState.videoUrl = newVideoUrl;
-    io.emit('matrix_state', matrixState);
-    io.emit('admin_reset'); // Force clients back to waiting/onboarding so they reload the new video
   });
 
   socket.on('admin_play', () => {
