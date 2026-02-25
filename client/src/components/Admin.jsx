@@ -13,6 +13,9 @@ export default function Admin() {
     const [rowsInput, setRowsInput] = useState(10);
     const [colsInput, setColsInput] = useState(10);
     const [eventNameInput, setEventNameInput] = useState("Paradox");
+    const [orientationInput, setOrientationInput] = useState("landscape");
+    const [objectFitInput, setObjectFitInput] = useState("fill");
+
     const [isUploading, setIsUploading] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const [uploadProgress, setUploadProgress] = useState(0);
@@ -35,10 +38,15 @@ export default function Admin() {
             setRowsInput(state.rows);
             setColsInput(state.cols);
             setEventNameInput(state.eventName || "Paradox");
+            setOrientationInput(state.orientation || "landscape");
+            setObjectFitInput(state.objectFit || "fill");
         });
 
         newSocket.on('grid_update', (users) => {
-            setMatrix(prev => ({ ...prev, users }));
+            setMatrix(prev => ({
+                ...prev,
+                users: { ...users } // Ensure a brand new object reference to trigger React re-renders
+            }));
         });
 
         // Auth Listener
@@ -71,7 +79,9 @@ export default function Admin() {
             socket.emit('admin_update_matrix', {
                 rows: parseInt(rowsInput),
                 cols: parseInt(colsInput),
-                eventName: eventNameInput
+                eventName: eventNameInput,
+                orientation: orientationInput,
+                objectFit: objectFitInput
             });
         }
     };
@@ -272,6 +282,25 @@ export default function Admin() {
                                     <input type="number" min="1" value={colsInput} onChange={e => setColsInput(e.target.value)} className="w-full bg-black border border-zinc-800 rounded p-3 text-white focus:outline-none focus:border-[#00f0ff]" />
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-xs uppercase text-zinc-500 font-bold mb-1">Orientation</label>
+                                    <select value={orientationInput} onChange={e => setOrientationInput(e.target.value)} className="w-full bg-black border border-zinc-800 rounded p-3 text-white focus:outline-none focus:border-[#00f0ff] appearance-none cursor-pointer">
+                                        <option value="landscape">Landscape</option>
+                                        <option value="portrait">Portrait</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs uppercase text-zinc-500 font-bold mb-1">Video Fit</label>
+                                    <select value={objectFitInput} onChange={e => setObjectFitInput(e.target.value)} className="w-full bg-black border border-zinc-800 rounded p-3 text-white focus:outline-none focus:border-[#00f0ff] appearance-none cursor-pointer">
+                                        <option value="fill">Stretch (Fill)</option>
+                                        <option value="cover">Crop (Cover)</option>
+                                        <option value="contain">Fit (Contain)</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <button onClick={handleUpdateMatrix} className="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 px-4 rounded transition-colors uppercase tracking-wider text-sm mb-6">
                                 Apply Config
                             </button>

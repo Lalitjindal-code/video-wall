@@ -42,6 +42,8 @@ let matrixState = {
   rows: 10,
   cols: 10,
   eventName: "Paradox",
+  orientation: "landscape", // "landscape" | "portrait"
+  objectFit: "fill", // "cover" (crop) | "fill" (stretch) | "contain"
   videoUrl: "", // Wait for admin upload
   users: {} // Format: { socketId: { row, col, status: 'buffering' | 'ready' } }
 };
@@ -89,11 +91,17 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('admin_update_matrix', ({ rows, cols, eventName }) => {
+  socket.on('admin_update_matrix', ({ rows, cols, eventName, orientation, objectFit }) => {
     matrixState.rows = rows;
     matrixState.cols = cols;
     if (eventName) {
       matrixState.eventName = eventName;
+    }
+    if (orientation) {
+      matrixState.orientation = orientation;
+    }
+    if (objectFit) {
+      matrixState.objectFit = objectFit;
     }
 
     // Clear users
