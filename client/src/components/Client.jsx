@@ -33,6 +33,12 @@ export default function Client() {
 
     const videoRef = useRef(null);
 
+    const getFullVideoUrl = (url) => {
+        if (!url) return "";
+        if (url.startsWith('http')) return url;
+        return `${SOCKET_SERVER_URL}${url}`;
+    };
+
     useEffect(() => {
         const newSocket = io(SOCKET_SERVER_URL);
         setSocket(newSocket);
@@ -87,7 +93,7 @@ export default function Client() {
         setDownloadProgress(0);
 
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', matrix.videoUrl, true);
+        xhr.open('GET', getFullVideoUrl(matrix.videoUrl), true);
         xhr.responseType = 'blob';
 
         xhr.onprogress = (event) => {
@@ -205,7 +211,7 @@ export default function Client() {
             {/* The single, persistent video element to prevent buffering resets */}
             <video
                 ref={videoRef}
-                src={localVideoUrl || matrix.videoUrl}
+                src={localVideoUrl || getFullVideoUrl(matrix.videoUrl)}
                 style={gameState === 'playing' ? displayStyle : { display: 'none' }}
                 className={gameState === 'playing' ? '' : 'hidden'}
                 playsInline

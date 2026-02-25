@@ -54,8 +54,8 @@ app.post('/upload', upload.single('video'), (req, res) => {
     return res.status(400).send('No file uploaded.');
   }
 
-  // Construct the new URL dynamically based on the request host
-  const newVideoUrl = `http://${req.get('host')}/uploads/${req.file.filename}`;
+  // Use a relative URL so that clients can prepend their own dynamically resolved backend domain/IP
+  const newVideoUrl = `/uploads/${req.file.filename}`;
 
   // Update global matrix state
   matrixState.videoUrl = newVideoUrl;

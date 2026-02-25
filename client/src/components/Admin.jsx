@@ -29,6 +29,12 @@ export default function Admin() {
     const fileInputRef = useRef(null);
     const adminVideoRef = useRef(null);
 
+    const getFullVideoUrl = (url) => {
+        if (!url) return "";
+        if (url.startsWith('http')) return url;
+        return `${SOCKET_SERVER_URL}${url}`;
+    };
+
     useEffect(() => {
         const newSocket = io(SOCKET_SERVER_URL);
         setSocket(newSocket);
@@ -370,7 +376,7 @@ export default function Admin() {
                                 {matrix.videoUrl ? (
                                     <video
                                         ref={adminVideoRef}
-                                        src={matrix.videoUrl}
+                                        src={getFullVideoUrl(matrix.videoUrl)}
                                         className="w-full h-full object-cover"
                                         muted
                                         loop
