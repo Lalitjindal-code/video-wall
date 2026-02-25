@@ -107,7 +107,8 @@ export default function Client() {
 
         xhr.onload = () => {
             if (xhr.status === 200) {
-                const blob = xhr.response;
+                // Force MIME type for better mobile browser compatibility (iOS Safari / Android Chrome)
+                const blob = new Blob([xhr.response], { type: 'video/mp4' });
                 const url = URL.createObjectURL(blob);
                 setLocalVideoUrl(url);
                 alert("✅ Download Complete! Video is saved to your phone cache for lag-free playback.");
