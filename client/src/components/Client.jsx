@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { Link } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 
 const SOCKET_SERVER_URL = import.meta.env.VITE_SOCKET_URL || `http://${window.location.hostname}:3001`;
 
@@ -111,7 +113,17 @@ export default function Client() {
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4">
+        <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative">
+
+            {/* Admin Login Portal Button */}
+            {gameState === 'onboarding' && (
+                <div className="absolute top-6 right-6 z-50">
+                    <Link to="/admin" className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 hover:bg-[#00f0ff] text-zinc-400 hover:text-black px-4 py-2 rounded-full transition-colors shadow-lg text-[10px] font-bold uppercase tracking-widest cursor-pointer">
+                        <Lock size={12} /> Admin Auth
+                    </Link>
+                </div>
+            )}
+
             {/* Hidden video element to preload in background */}
             <video
                 ref={videoRef}
