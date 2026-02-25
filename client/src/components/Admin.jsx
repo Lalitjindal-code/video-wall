@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Play, Pause, RotateCcw, UploadCloud, LogOut } from 'lucide-react';
+import { Play, Pause, RotateCcw, UploadCloud, LogOut, CloudDownload } from 'lucide-react';
 import { auth, storage } from '../firebase';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -152,6 +152,10 @@ export default function Admin() {
             adminVideoRef.current.currentTime = 0;
         }
         socket?.emit('admin_reset');
+    };
+
+    const handleForceDownload = () => {
+        socket?.emit('admin_force_download');
     };
 
     const handleSlotClick = (r, c) => {
@@ -340,6 +344,9 @@ export default function Admin() {
                             <div className="space-y-4">
                                 <button onClick={handlePlay} className="w-full flex items-center justify-center gap-2 bg-[#00f0ff] hover:bg-[#00c0cc] text-black font-black py-4 px-4 rounded transition-colors uppercase tracking-widest cursor-pointer">
                                     <Play size={20} className="fill-black" /> EXECUTE PLAY
+                                </button>
+                                <button onClick={handleForceDownload} className="w-full flex items-center justify-center gap-2 bg-purple-500 hover:bg-purple-600 text-white font-black py-3 px-4 rounded transition-colors uppercase tracking-widest cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                                    <CloudDownload size={18} /> Force Client Download
                                 </button>
                                 <div className="grid grid-cols-2 gap-4">
                                     <button onClick={handlePause} className="flex items-center justify-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-4 rounded transition-colors uppercase text-sm cursor-pointer">

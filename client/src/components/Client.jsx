@@ -120,6 +120,18 @@ export default function Client() {
         xhr.send();
     };
 
+    // Listen for Force Download from Admin
+    useEffect(() => {
+        if (!socket) return;
+        const onForceDownload = () => {
+            if (gameState === 'waiting' && !localVideoUrl && !isDownloading && matrix.videoUrl) {
+                handleDownloadVideo();
+            }
+        };
+        socket.on('force_download', onForceDownload);
+        return () => socket.off('force_download', onForceDownload);
+    }, [socket, gameState, localVideoUrl, isDownloading, matrix.videoUrl]);
+
     // Handle Play execution securely when gameState changes to playing
     useEffect(() => {
         if (gameState === 'playing' && videoRef.current) {

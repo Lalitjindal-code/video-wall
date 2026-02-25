@@ -110,6 +110,10 @@ io.on('connection', (socket) => {
     io.emit('admin_reset');
   });
 
+  socket.on('admin_force_download', () => {
+    io.emit('force_download');
+  });
+
   socket.on('admin_play', () => {
     io.emit('admin_play');
   });
