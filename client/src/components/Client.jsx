@@ -95,6 +95,8 @@ export default function Client() {
         const xhr = new XMLHttpRequest();
         xhr.open('GET', getFullVideoUrl(matrix.videoUrl), true);
         xhr.responseType = 'blob';
+        // Avoid sending cookies since this is cross-origin
+        xhr.withCredentials = false;
 
         xhr.onprogress = (event) => {
             if (event.lengthComputable) {
@@ -215,6 +217,7 @@ export default function Client() {
                 style={gameState === 'playing' ? displayStyle : { display: 'none' }}
                 className={gameState === 'playing' ? '' : 'hidden'}
                 playsInline
+                crossOrigin="anonymous"
                 muted
                 loop
                 onLoadedData={handleVideoCanPlay}

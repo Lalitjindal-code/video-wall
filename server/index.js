@@ -15,8 +15,16 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir);
 }
 
-// Serve uploaded files statically
-app.use('/uploads', express.static(uploadDir));
+// Serve uploaded files statically with CORS headers explicitly enabled for fetch blobs
+app.use('/uploads', express.static(uploadDir, {
+  setHeaders: (res, path) => {
+    res.set('Access-Control-Allow-Origin', '*');
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type, Range');
+    res.set('Access-Control-Expose-Headers', 'Accept-Ranges, Content-Encoding, Content-Length, Content-Range');
+    res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+  }
+}));
 
 // Configure Multer for video uploads
 const storage = multer.diskStorage({
