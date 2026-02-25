@@ -66,6 +66,9 @@ export default function Client() {
         newSocket.on('admin_play', () => {
             if (gameState === 'waiting' || gameState === 'playing') {
                 setGameState('playing');
+                if (videoRef.current) {
+                    videoRef.current.play().catch(e => console.error("Play error from socket action:", e));
+                }
             }
         });
 
@@ -215,8 +218,8 @@ export default function Client() {
             <video
                 ref={videoRef}
                 src={localVideoUrl || getFullVideoUrl(matrix.videoUrl)}
-                style={gameState === 'playing' ? displayStyle : { display: 'none' }}
-                className={gameState === 'playing' ? '' : 'hidden'}
+                style={gameState === 'playing' ? displayStyle : { ...displayStyle, opacity: 0, pointerEvents: 'none' }}
+                className={gameState === 'playing' ? 'z-0' : 'z-[-10]'}
                 playsInline
                 crossOrigin="anonymous"
                 muted
@@ -267,14 +270,14 @@ export default function Client() {
             )}
 
             {gameState === 'waiting' && (
-                <div className="text-center space-y-8 z-10 w-full h-full flex flex-col items-center justify-center bg-zinc-950 absolute top-0 left-0 p-6">
-                    <div className="w-32 h-32 border-4 border-[#00f0ff] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_30px_rgba(0,240,255,0.3)]"></div>
-                    <div>
+                <div className="text-center space-y-8 z-10 w-full min-h-screen flex flex-col items-center justify-center bg-zinc-950 absolute top-0 left-0 p-6 overflow-y-auto pb-12 pt-12">
+                    <div className="w-32 h-32 border-4 border-[#00f0ff] border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_30px_rgba(0,240,255,0.3)] shrink-0"></div>
+                    <div className="shrink-0">
                         <h2 className="text-2xl font-black uppercase tracking-widest text-zinc-300 animate-pulse">Awaiting Signal</h2>
                         <p className="text-zinc-500 mt-2">Position [{myPos.row}, {myPos.col}] locked. Do not close this tab.</p>
                     </div>
 
-                    <div className="w-full max-w-sm mt-8 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-lg relative overflow-hidden">
+                    <div className="w-full max-w-sm mt-8 bg-zinc-900 border border-zinc-800 p-6 rounded-2xl shadow-lg relative overflow-hidden shrink-0">
                         <h3 className="text-[#00f0ff] font-bold uppercase tracking-wider text-sm mb-2">Fix Playback Lag?</h3>
                         <p className="text-zinc-400 text-xs mb-4">Download the video directly to your device cache now to prevent buffering issues when playback starts.</p>
 
