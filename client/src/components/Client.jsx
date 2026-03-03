@@ -153,8 +153,22 @@ export default function Client() {
         }
     }, [gameState]);
 
-    const handleJoin = (e) => {
+    const handleJoin = async (e) => {
         e.preventDefault();
+
+        // Request fullscreen
+        try {
+            if (document.documentElement.requestFullscreen) {
+                await document.documentElement.requestFullscreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
+                await document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { /* IE11 */
+                await document.documentElement.msRequestFullscreen();
+            }
+        } catch (err) {
+            console.error("Error attempting to enable fullscreen:", err);
+        }
+
         if (socket && myPos.row >= 1 && myPos.col >= 1) {
             socket.emit('client_join', myPos);
         }
@@ -177,6 +191,8 @@ export default function Client() {
         left: 0,
         width: `${N * 100}vw`,
         height: `${M * 100}dvh`,
+        maxWidth: 'none',
+        maxHeight: 'none',
         transform: `translate(${-(C - 1) * 100}vw, ${-(R - 1) * 100}dvh)`,
         objectFit: matrix.objectFit || 'cover'
     };
