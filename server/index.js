@@ -51,7 +51,7 @@ let matrixState = {
   cols: 10,
   eventName: "Paradox",
   orientation: "landscape", // "landscape" | "portrait"
-  objectFit: "fill", // "cover" (crop) | "fill" (stretch) | "contain"
+  objectFit: "cover", // "cover" (crop) | "fill" (stretch) | "contain"
   videoUrl: "", // Wait for admin upload
   mediaType: "video", // "video" | "image"
   connectionsCount: 0,
@@ -86,8 +86,11 @@ app.post('/upload', upload.single('video'), (req, res) => {
 });
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
-  
-  matrixState.connectionsCount++;
+
+  const role = socket.handshake.query.role;
+  if (role !== 'admin') {
+    matrixState.connectionsCount++;
+  }
   io.emit('matrix_state', matrixState);
 
   // Send current state to new client
@@ -160,8 +163,12 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
-    matrixState.connectionsCount = Math.max(0, matrixState.connectionsCount - 1);
-    
+    const role = socket.handshake.query.role;
+
+    if (role !== 'admin') {
+      matrixState.connectionsCount = Math.max(0, matrixState.connectionsCount - 1);
+    }
+
     if (matrixState.users[socket.id]) {
       delete matrixState.users[socket.id];
       io.emit('grid_update', matrixState.users);

@@ -26,7 +26,8 @@ export default function Admin() {
     const [password, setPassword] = useState('');
     const [authError, setAuthError] = useState('');
 
-    const fileInputRef = useRef(null);
+    const videoInputRef = useRef(null);
+    const imageInputRef = useRef(null);
     const adminVideoRef = useRef(null);
 
     const getFullVideoUrl = (url) => {
@@ -36,7 +37,9 @@ export default function Admin() {
     };
 
     useEffect(() => {
-        const newSocket = io(SOCKET_SERVER_URL);
+        const newSocket = io(SOCKET_SERVER_URL, {
+            query: { role: 'admin' }
+        });
         setSocket(newSocket);
 
         newSocket.on('matrix_state', (state) => {
@@ -45,7 +48,7 @@ export default function Admin() {
             setColsInput(state.cols);
             setEventNameInput(state.eventName || "Paradox");
             setOrientationInput(state.orientation || "landscape");
-            setObjectFitInput(state.objectFit || "fill");
+            setObjectFitInput(state.objectFit || "cover");
         });
 
         newSocket.on('grid_update', (users) => {
@@ -322,26 +325,48 @@ export default function Admin() {
 
                             <input
                                 type="file"
-                                accept="video/*, image/*"
+                                accept="video/*"
                                 className="hidden"
-                                ref={fileInputRef}
+                                ref={videoInputRef}
+                                onChange={handleFileUpload}
+                            />
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                ref={imageInputRef}
                                 onChange={handleFileUpload}
                             />
 
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={isUploading}
-                                className={`w-full flex items-center justify-center gap-2 ${isUploading ? 'bg-zinc-700 text-zinc-500' : 'bg-[#00f0ff] hover:bg-[#00c0cc] text-black'} font-bold py-3 px-4 rounded transition-colors uppercase tracking-wider text-sm cursor-pointer relative overflow-hidden`}
-                            >
-                                {/* Progress Bar Background */}
-                                {isUploading && (
-                                    <div className="absolute top-0 left-0 h-full bg-[#00f0ff] opacity-20" style={{ width: `${uploadProgress}%` }}></div>
-                                )}
-                                <span className="relative z-10 flex items-center gap-2">
-                                    <UploadCloud size={18} className={isUploading ? '' : 'stroke-black'} />
-                                    {isUploading ? `Uploading ${Math.round(uploadProgress)}%` : 'Upload Media to Cloud'}
-                                </span>
-                            </button>
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    onClick={() => videoInputRef.current?.click()}
+                                    disabled={isUploading}
+                                    className={`w-full flex items-center justify-center gap-2 ${isUploading ? 'bg-zinc-700 text-zinc-500' : 'bg-[#00f0ff] hover:bg-[#00c0cc] text-black'} font-bold py-3 px-4 rounded transition-colors uppercase tracking-wider text-sm cursor-pointer relative overflow-hidden`}
+                                >
+                                    {isUploading && (
+                                        <div className="absolute top-0 left-0 h-full bg-white opacity-20" style={{ width: `${uploadProgress}%` }}></div>
+                                    )}
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        <UploadCloud size={18} className={isUploading ? '' : 'stroke-black'} />
+                                        {isUploading ? `Uploading Video ${Math.round(uploadProgress)}%` : 'Upload Video'}
+                                    </span>
+                                </button>
+
+                                <button
+                                    onClick={() => imageInputRef.current?.click()}
+                                    disabled={isUploading}
+                                    className={`w-full flex items-center justify-center gap-2 ${isUploading ? 'bg-zinc-700 text-zinc-500' : 'bg-green-400 hover:bg-green-500 text-black'} font-bold py-3 px-4 rounded transition-colors uppercase tracking-wider text-sm cursor-pointer relative overflow-hidden`}
+                                >
+                                    {isUploading && (
+                                        <div className="absolute top-0 left-0 h-full bg-white opacity-20" style={{ width: `${uploadProgress}%` }}></div>
+                                    )}
+                                    <span className="relative z-10 flex items-center gap-2">
+                                        <UploadCloud size={18} className={isUploading ? '' : 'stroke-black'} />
+                                        {isUploading ? `Uploading Image ${Math.round(uploadProgress)}%` : 'Upload Image'}
+                                    </span>
+                                </button>
+                            </div>
                             {uploadError && <p className="text-[#ff003c] text-xs font-bold mt-2 text-center">{uploadError}</p>}
                         </div>
 

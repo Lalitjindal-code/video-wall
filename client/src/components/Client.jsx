@@ -178,7 +178,7 @@ export default function Client() {
         width: `${N * 100}vw`,
         height: `${M * 100}dvh`,
         transform: `translate(${-(C - 1) * 100}vw, ${-(R - 1) * 100}dvh)`,
-        objectFit: matrix.objectFit || 'fill'
+        objectFit: matrix.objectFit || 'cover'
     };
 
     const isOrientationMismatch =
