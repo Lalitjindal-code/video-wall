@@ -51,7 +51,7 @@ let matrixState = {
   cols: 10,
   eventName: "Paradox",
   orientation: "landscape", // "landscape" | "portrait"
-  objectFit: "cover", // "cover" (crop) | "fill" (stretch) | "contain"
+  objectFit: "fill", // "cover" (crop) | "fill" (stretch) | "contain"
   videoUrl: "", // Wait for admin upload
   mediaType: "video", // "video" | "image"
   connectionsCount: 0,

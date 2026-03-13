@@ -194,7 +194,7 @@ export default function Client() {
         maxWidth: 'none',
         maxHeight: 'none',
         transform: `translate(${-(C - 1) * 100}vw, ${-(R - 1) * 100}dvh)`,
-        objectFit: matrix.objectFit || 'cover'
+        objectFit: matrix.objectFit || 'fill'
     };
 
     const isOrientationMismatch =
